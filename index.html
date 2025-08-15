@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X Thread Maker</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
+<style>
+:root {
+  --x-blue: #1da1f2;
+  --x-bg: #15202b;
+  --x-card: #192734;
+  --x-text: #e1e8ed;
+}
+body {
+  background-color: var(--x-bg);
+  color: var(--x-text);
+  font-family: 'Vazir', sans-serif;
+}
+h1 {
+  color: var(--x-blue);
+}
+.card {
+  background-color: var(--x-card);
+  border: none;
+  border-radius: 1rem;
+}
+textarea, .tweet-text {
+  background-color: var(--x-card);
+  color: var(--x-text);
+  border: 1px solid #253341;
+  border-radius: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  resize: vertical;
+}
+.tweet-text[contenteditable="true"] {
+  outline: none;
+}
+.progress {
+  height: 6px;
+}
+.btn-x {
+  background-color: var(--x-blue);
+  color: white;
+}
+.btn-x:hover {
+  background-color: #0d8ddb;
+}
+footer {
+  text-align: center;
+  padding: 1rem;
+  color: #8899a6;
+  font-size: 0.85rem;
+}
+a {
+  color: var(--x-blue);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<div class="container py-4">
+  <h1 class="mb-4 text-center">🧵 X Thread Maker</h1>
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <textarea id="mainText" rows="8" placeholder="متن بلند خود را وارد کنید..."></textarea>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button class="btn btn-x flex-fill" onclick="generateThread()">تبدیل به رشته توییت</button>
+        <button class="btn btn-secondary flex-fill" onclick="redistribute()">بازتقسیم</button>
+        <button class="btn btn-success flex-fill" onclick="copyAll()">کپی همه</button>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6" id="tweetsContainer">
+      <!-- توییت‌ها اینجا اضافه می‌شوند -->
+    </div>
+  </div>
+</div>
+
+<footer>
+  © 2025 — Developed by Rick Sanchez | GitHub: <a href="https://github.com/m4tinbeigi-official" target="_blank">m4tinbeigi-official</a>
+</footer>
+
+<script>
+const MAX = 280;
+function countChars(str) {
+  return Array.from(str).length;
+}
+function detectRTL(text) {
+  return /[\u0600-\u06FF]/.test(text);
+}
+function splitLongSentence(sentence, limit) {
+  const breakers = ['؛','،',',','-','—',' '];
+  for (let b of breakers) {
+    let idx = sentence.lastIndexOf(b, limit);
+    if (idx > -1) return [sentence.slice(0, idx+1), sentence.slice(idx+1).trim()];
+  }
+  return [sentence.slice(0, limit), sentence.slice(limit)];
+}
+function splitText(text) {
+  const sentences = text.match(/[^.!?،؛\n]+[.!?،؛\n]?/g) || [text];
+  let tweets = [], current = "";
+  sentences.forEach(s => {
+    if (countChars(current + s) + 6 <= MAX) {
+      current += s.trim() + " ";
+    } else {
+      if (countChars(s) + 6 > MAX) {
+        let part = s.trim();
+        while (countChars(part) + 6 > MAX) {
+          const [head, tail] = splitLongSentence(part, MAX-6);
+          tweets.push(head.trim());
+          part = tail.trim();
+        }
+        if (part) {
+          if (countChars(current) + countChars(part) + 6 <= MAX) {
+            current += part + " ";
+          } else {
+            tweets.push(current.trim());
+            current = part + " ";
+          }
+        }
+      } else {
+        tweets.push(current.trim());
+        current = s.trim() + " ";
+      }
+    }
+  });
+  if (current.trim()) tweets.push(current.trim());
+  const total = tweets.length;
+  return tweets.map((t,i) => `${t} (${i+1}/${total})`);
+}
+function generateThread() {
+  const text = document.getElementById('mainText').value.trim();
+  if (!text) return;
+  const tweets = splitText(text);
+  renderTweets(tweets);
+}
+function renderTweets(tweets) {
+  const container = document.getElementById('tweetsContainer');
+  container.innerHTML = "";
+  tweets.forEach((t, i) => {
+    const chars = countChars(t);
+    const rtl = detectRTL(t);
+    const card = document.createElement('div');
+    card.className = "card mb-3";
+    card.innerHTML = `
+      <div class="card-body">
+        <div class="tweet-text" contenteditable="true" data-index="${i}" style="direction:${rtl?'rtl':'ltr'}">${t}</div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <small>${chars}/${MAX}</small>
+          <button class="btn btn-sm btn-x" onclick="copyTweet(${i})">کپی</button>
+        </div>
+        <div class="progress mt-2">
+          <div class="progress-bar ${chars>MAX?'bg-danger':chars>MAX-20?'bg-warning':'bg-success'}" style="width:${(chars/MAX)*100}%"></div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+function copyTweet(index) {
+  const tweet = document.querySelector(`.tweet-text[data-index="${index}"]`).innerText;
+  navigator.clipboard.writeText(tweet).then(()=>alert("کپی شد ✅"));
+}
+function copyAll() {
+  const tweets = Array.from(document.querySelectorAll('.tweet-text')).map(el=>el.innerText).join("\n\n");
+  navigator.clipboard.writeText(tweets).then(()=>alert("همه کپی شد ✅"));
+}
+function redistribute() {
+  const allText = Array.from(document.querySelectorAll('.tweet-text')).map(el=>{
+    return el.innerText.replace(/\(\d+\/\d+\)$/, '').trim();
+  }).join(" ");
+  const tweets = splitText(allText);
+  renderTweets(tweets);
+}
+</script>
+
+</body>
+</html>
