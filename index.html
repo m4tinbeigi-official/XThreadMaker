@@ -1,187 +1,438 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<!doctype html>
+<html lang="fa" data-bs-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>X Thread Maker</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-<link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
-<style>
-:root {
-  --x-blue: #1da1f2;
-  --x-bg: #15202b;
-  --x-card: #192734;
-  --x-text: #e1e8ed;
-}
-* {
-  font-family: 'Vazir', sans-serif;
-}
-body {
-  background-color: var(--x-bg);
-  color: var(--x-text);
-}
-h1 {
-  color: var(--x-blue);
-  font-weight: bold;
-}
-.card {
-  background-color: var(--x-card);
-  border: none;
-  border-radius: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-textarea, .tweet-text {
-  background-color: var(--x-card);
-  color: var(--x-text);
-  border: 1px solid #253341;
-  border-radius: 0.5rem;
-  width: 100%;
-  padding: 0.75rem;
-  resize: vertical;
-}
-textarea::placeholder {
-  color: #8899a6;
-}
-.tweet-text[contenteditable="true"] {
-  outline: none;
-}
-.progress {
-  height: 6px;
-}
-.btn-x {
-  background-color: var(--x-blue);
-  color: white;
-  font-weight: 500;
-}
-.btn-x:hover {
-  background-color: #0d8ddb;
-}
-footer {
-  text-align: center;
-  padding: 1rem;
-  color: #8899a6;
-  font-size: 0.85rem;
-}
-a {
-  color: var(--x-blue);
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>X Thread Maker — سازنده رشته‌توییت ایکس</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Vazir font (cdn) -->
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v29.0.3/dist/font-face.css" rel="stylesheet" type="text/css" />
+  <style>
+    :root {
+      --x-blue: #1da1f2;
+      --x-card: #121212;
+      --x-border: #2a2a2a;
+      --x-text: #e6e6e6;
+      --x-muted: #9aa0a6;
+      --max-chars: 280;
+    }
+
+    html, body {
+      background: #000;
+      color: var(--x-text);
+      font-family: Vazir, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    .navbar {
+      border-bottom: 1px solid var(--x-border);
+      background: #000 !important;
+    }
+
+    .brand-x {
+      color: var(--x-blue);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .card {
+      background: var(--x-card);
+      border: 1px solid var(--x-border);
+      border-radius: 16px;
+    }
+
+    textarea.form-control, .form-control {
+      background: #0b0b0b;
+      border: 1px solid var(--x-border);
+      color: var(--x-text);
+    }
+
+    .btn-x {
+      background: var(--x-blue);
+      color: #fff;
+      border: none;
+    }
+    .btn-x:hover { filter: brightness(1.08); }
+
+    .dir-rtl { direction: rtl; text-align: right; }
+    .dir-ltr { direction: ltr; text-align: left; }
+
+    .token { color: var(--x-muted); font-weight: 500; }
+
+    .counter {
+      font-variant-numeric: tabular-nums;
+      font-size: .9rem;
+      color: var(--x-muted);
+    }
+
+    .over-limit {
+      border-color: #dc3545 !important;
+      box-shadow: 0 0 0 .25rem rgba(220, 53, 69, .15);
+    }
+
+    .progress { height: 6px; background: #101010; }
+    .progress-bar { background: var(--x-blue); }
+    .progress-bar.bg-danger { background: #dc3545 !important; }
+
+    .tweet-header {
+      font-size: .95rem;
+      color: var(--x-muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--x-border);
+      color: var(--x-muted);
+    }
+
+    .kbd {
+      background: #111;
+      border: 1px solid var(--x-border);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: .85rem;
+    }
+  </style>
 </head>
 <body>
-
-<div class="container py-4">
-  <h1 class="mb-4 text-center">🧵 X Thread Maker</h1>
-  <div class="row g-4">
-    <div class="col-12 col-lg-6">
-      <textarea id="mainText" rows="8" placeholder="متن بلند خود را اینجا بنویسید..."></textarea>
-      <div class="d-flex flex-wrap gap-2 mt-3">
-        <button class="btn btn-success flex-fill" onclick="copyAll()">کپی همه</button>
+  <nav class="navbar sticky-top">
+    <div class="container">
+      <span class="navbar-brand brand-x">X Thread Maker</span>
+      <div class="d-none d-md-flex gap-3 align-items-center">
+        <span class="token">حداکثر کاراکتر: <strong>280</strong></span>
+        <span class="token">شماره‌گذاری: <code>(n/total)</code> انتهای متن</span>
       </div>
     </div>
-    <div class="col-12 col-lg-6" id="tweetsContainer">
-      <!-- توییت‌ها اینجا اضافه می‌شوند -->
+  </nav>
+
+  <main class="container my-4">
+    <!-- Input Panel -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">متن ورودی</h5>
+          <small class="counter" id="inputCounter">0/280</small>
+        </div>
+        <textarea id="inputText" class="form-control dir-rtl" rows="6" placeholder="اینجا متن بلندت رو پیست کن... (جملات کامل؛ قطع روی نقطه یا ویرگول)\nFor English, just paste — it auto-detects direction." spellcheck="false"></textarea>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <button id="btnProcess" class="btn btn-x">تبدیل به رشته‌توییت</button>
+          <button id="btnClear" class="btn btn-outline-light">پاک‌سازی</button>
+          <div class="ms-auto d-flex align-items-center gap-2 small text-secondary">
+            <span class="d-none d-sm-inline">میانبر:</span>
+            <span class="kbd">Ctrl/⌘ + Enter</span>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<footer>
-  © 2025 — Developed by Rick Sanchez | GitHub: <a href="https://github.com/m4tinbeigi-official" target="_blank">m4tinbeigi-official</a>
-</footer>
+    <!-- Output Panel -->
+    <div id="outputWrap" class="d-none">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0">خروجی رشته‌توییت</h5>
+        <div class="d-flex gap-2">
+          <button id="btnCopyAll" class="btn btn-x">کپی همه</button>
+          <button id="btnRecalc" class="btn btn-outline-light">بازتقسیم بعد از ویرایش</button>
+        </div>
+      </div>
 
-<script>
-const MAX = 280;
-const input = document.getElementById('mainText');
-input.addEventListener('input', () => {
-  const text = input.value.trim();
-  if (!text) {
-    document.getElementById('tweetsContainer').innerHTML = '';
-    return;
-  }
-  renderTweets(splitText(text));
-});
+      <div class="row g-3" id="tweetsContainer"></div>
 
-function countChars(str) {
-  return Array.from(str).length;
-}
-function detectRTL(text) {
-  return /[\u0600-\u06FF]/.test(text);
-}
-function splitLongSentence(sentence, limit) {
-  const breakers = ['؛','،',',','-','—',' '];
-  for (let b of breakers) {
-    let idx = sentence.lastIndexOf(b, limit);
-    if (idx > -1) return [sentence.slice(0, idx+1), sentence.slice(idx+1).trim()];
-  }
-  return [sentence.slice(0, limit), sentence.slice(limit)];
-}
-function splitText(text) {
-  const sentences = text.match(/[^.!?،؛\n]+[.!?،؛\n]?/g) || [text];
-  let tweets = [], current = "";
-  sentences.forEach(s => {
-    if (countChars(current + s) + 6 <= MAX) {
-      current += s.trim() + " ";
-    } else {
-      if (countChars(s) + 6 > MAX) {
-        let part = s.trim();
-        while (countChars(part) + 6 > MAX) {
-          const [head, tail] = splitLongSentence(part, MAX-6);
-          tweets.push(head.trim());
-          part = tail.trim();
+      <div class="mt-3 small text-secondary" id="summaryLine"></div>
+    </div>
+  </main>
+
+  <footer class="container py-4 mt-4">
+    <div class="d-flex flex-column flex-md-row gap-2 align-items-center justify-content-between">
+      <div>© 2025 — ساخته‌شده برای <strong>ایکس</strong> با Bootstrap & JS</div>
+      <div>Developed by <strong>Rick Sanchez</strong> — GitHub: <a class="link-info" href="https://github.com/m4tinbeigi-official" target="_blank" rel="noopener">m4tinbeigi-official</a></div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // --------------------- Utilities ---------------------
+    const MAX = 280;
+
+    const isRTL = (s) => /[\u0600-\u06FF]/.test(s);
+
+    const setDirClass = (el, text) => {
+      const rtl = isRTL(text);
+      el.classList.toggle('dir-rtl', rtl);
+      el.classList.toggle('dir-ltr', !rtl);
+    };
+
+    // Split text into sentences, preferring end at . , ، ! ? … ; ؛ : or newline
+    function splitIntoSentences(text) {
+      const cleaned = text.replace(/\r/g, '').replace(/\t/g, ' ');
+      const regex = /[^.!؟!…،,:؛\n]+(?:[\.؟!…،,:؛]+|\n+|$)/g; // keep punctuation
+      const out = [];
+      let m;
+      while ((m = regex.exec(cleaned)) !== null) {
+        const s = m[0].trim();
+        if (s) out.push(s);
+      }
+      return out;
+    }
+
+    // Split a too-long sentence into safe chunks without breaking words
+    function splitLongSentence(sentence, limit) {
+      const breakers = [' — ', ' - ', ';', '؛', ':', '،', ',', '…', '...', ' '];
+      const parts = [];
+      let start = 0;
+      const s = sentence;
+
+      while (start < s.length) {
+        const remaining = s.slice(start);
+        if (remaining.length <= limit) {
+          parts.push(remaining.trim());
+          break;
         }
-        if (part) {
-          if (countChars(current) + countChars(part) + 6 <= MAX) {
-            current += part + " ";
+        const segment = s.slice(start, start + limit);
+        let cut = -1;
+        for (const br of breakers) {
+          const idx = segment.lastIndexOf(br);
+          if (idx > cut) cut = idx + (br.trim() === '' ? 0 : br.length - 1); // keep punctuation if there is
+        }
+        if (cut < 0) {
+          cut = segment.lastIndexOf(' ');
+        }
+        if (cut < 0 || cut < Math.floor(limit * 0.6)) {
+          // force cut at limit to avoid micro-slices
+          cut = limit;
+        }
+        parts.push(s.slice(start, start + cut).trim());
+        start += cut;
+      }
+      return parts;
+    }
+
+    // Build tweets from sentences with a conservative reserve for numbering
+    function buildTweets(sentences, reserve) {
+      const limit = MAX - reserve; // reserve for numbering suffix
+      const chunks = [];
+      let cur = '';
+
+      const pushCur = () => { if (cur.trim()) { chunks.push(cur.trim()); cur = ''; } };
+
+      for (const sent of sentences) {
+        const sentTrim = sent.trim();
+        if (!sentTrim) continue;
+
+        if (!cur) {
+          if (sentTrim.length <= limit) {
+            cur = sentTrim;
           } else {
-            tweets.push(current.trim());
-            current = part + " ";
+            const parts = splitLongSentence(sentTrim, limit);
+            for (const [i, p] of parts.entries()) {
+              if (i === parts.length - 1) cur = p; else chunks.push(p);
+            }
+          }
+        } else {
+          const candidate = cur + (cur.endsWith('\n') ? '' : ' ') + sentTrim;
+          if (candidate.length <= limit) {
+            cur = candidate;
+          } else {
+            pushCur();
+            if (sentTrim.length <= limit) {
+              cur = sentTrim;
+            } else {
+              const parts = splitLongSentence(sentTrim, limit);
+              for (const [i, p] of parts.entries()) {
+                if (i === parts.length - 1) cur = p; else chunks.push(p);
+              }
+            }
           }
         }
-      } else {
-        tweets.push(current.trim());
-        current = s.trim() + " ";
+      }
+      pushCur();
+      return chunks;
+    }
+
+    // Attach numbering and ensure dir
+    function withNumbering(chunks) {
+      const total = chunks.length;
+      const digits = String(total).length;
+      const suffixLen = 4 + 2 * digits; // " (i/N)" max digits for i and N
+      // If our conservative reserve (< suffixLen), we might rebuild — but we used 10 as default which fits up to 3 digits
+      return chunks.map((c, idx) => {
+        const numbered = c.replace(/\s*\(\d+\/\d+\)\s*$/, '').trim() + ` (${idx + 1}/${total})`;
+        return numbered;
+      });
+    }
+
+    // Compute char count including numbering
+    const charCount = (s) => [...s].length; // handle surrogate pairs
+
+    // --------------- DOM refs ---------------
+    const input = document.getElementById('inputText');
+    const inputCounter = document.getElementById('inputCounter');
+    const btnProcess = document.getElementById('btnProcess');
+    const btnClear = document.getElementById('btnClear');
+    const btnCopyAll = document.getElementById('btnCopyAll');
+    const btnRecalc = document.getElementById('btnRecalc');
+    const outWrap = document.getElementById('outputWrap');
+    const container = document.getElementById('tweetsContainer');
+    const summaryLine = document.getElementById('summaryLine');
+
+    // Live input counter + dir
+    input.addEventListener('input', () => {
+      const len = charCount(input.value);
+      inputCounter.textContent = `${len}/${MAX}`;
+      setDirClass(input, input.value);
+    });
+
+    // Process action
+    function processText() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      // First pass with conservative reserve for numbering up to 3 digits
+      let reserve = 10; // fits N up to 999 -> suffix up to 10 chars
+      let chunks = buildTweets(splitIntoSentences(text), reserve);
+      // If total digits exceed 3, rebuild with bigger reserve
+      const total = chunks.length;
+      const digits = String(total).length;
+      const neededReserve = 4 + 2 * digits; // exact maximum suffix length
+      if (neededReserve > reserve) {
+        reserve = neededReserve;
+        chunks = buildTweets(splitIntoSentences(text), reserve);
+      }
+      const finalTweets = withNumbering(chunks);
+      renderTweets(finalTweets);
+    }
+
+    // Render output tweets
+    function renderTweets(tweets) {
+      container.innerHTML = '';
+      outWrap.classList.remove('d-none');
+
+      tweets.forEach((t, i) => {
+        const col = document.createElement('div');
+        col.className = 'col-12';
+
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const body = document.createElement('div');
+        body.className = 'card-body';
+
+        const head = document.createElement('div');
+        head.className = 'd-flex justify-content-between align-items-center tweet-header mb-2';
+        head.innerHTML = `<div>توییت ${i + 1} از ${tweets.length}</div><div class="counter" id="count-${i}">0/${MAX}</div>`;
+
+        const ta = document.createElement('textarea');
+        ta.className = 'form-control';
+        ta.rows = 3;
+        ta.value = t;
+        setDirClass(ta, t);
+
+        const progressWrap = document.createElement('div');
+        progressWrap.className = 'progress my-2';
+        const bar = document.createElement('div');
+        bar.className = 'progress-bar';
+        progressWrap.appendChild(bar);
+
+        const actions = document.createElement('div');
+        actions.className = 'd-flex gap-2 mt-2';
+        const btnCopy = document.createElement('button');
+        btnCopy.className = 'btn btn-sm btn-outline-light';
+        btnCopy.textContent = 'کپی';
+        actions.appendChild(btnCopy);
+
+        body.appendChild(head);
+        body.appendChild(ta);
+        body.appendChild(progressWrap);
+        body.appendChild(actions);
+        card.appendChild(body);
+        col.appendChild(card);
+        container.appendChild(col);
+
+        const updateCounters = () => {
+          // Normalize numbering suffix to keep (i/N) correct even after edits
+          const normalized = ta.value.replace(/\s*\(\d+\/\d+\)\s*$/, '').trim() + ` (${i + 1}/${tweets.length})`;
+          if (ta.value !== normalized) {
+            const caret = ta.selectionStart; // best-effort caret preservation
+            ta.value = normalized;
+            try { ta.setSelectionRange(caret, caret); } catch {}
+          }
+          const len = charCount(ta.value);
+          document.getElementById(`count-${i}`).textContent = `${len}/${MAX}`;
+          bar.style.width = Math.min(100, (len / MAX) * 100) + '%';
+          const over = len > MAX;
+          bar.classList.toggle('bg-danger', over);
+          ta.classList.toggle('over-limit', over);
+          setDirClass(ta, ta.value);
+        };
+
+        ta.addEventListener('input', updateCounters);
+        updateCounters();
+
+        btnCopy.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(ta.value);
+            toast('این بخش کپی شد.');
+          } catch {
+            // fallback
+            ta.select();
+            document.execCommand('copy');
+            toast('این بخش کپی شد.');
+          }
+        });
+      });
+
+      summaryLine.textContent = `تعداد توییت‌ها: ${tweets.length} — اگر بخشی بعد از ویرایش از 280 کاراکتر بیشتر شد، با رنگ قرمز مشخص می‌شود.`;
+    }
+
+    // Copy all
+    async function copyAll() {
+      const all = [...document.querySelectorAll('#tweetsContainer textarea')].map(t => t.value).join('\n\n');
+      try {
+        await navigator.clipboard.writeText(all);
+        toast('کل رشته‌توییت کپی شد.');
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = all; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        toast('کل رشته‌توییت کپی شد.');
       }
     }
-  });
-  if (current.trim()) tweets.push(current.trim());
-  const total = tweets.length;
-  return tweets.map((t,i) => `${t} (${i+1}/${total})`);
-}
-function renderTweets(tweets) {
-  const container = document.getElementById('tweetsContainer');
-  container.innerHTML = "";
-  tweets.forEach((t, i) => {
-    const chars = countChars(t);
-    const rtl = detectRTL(t);
-    const card = document.createElement('div');
-    card.className = "card mb-3";
-    card.innerHTML = `
-      <div class="card-body">
-        <div class="tweet-text" contenteditable="true" data-index="${i}" style="direction:${rtl?'rtl':'ltr'}">${t}</div>
-        <div class="d-flex justify-content-between align-items-center mt-2">
-          <small>${chars}/${MAX}</small>
-          <button class="btn btn-sm btn-x" onclick="copyTweet(${i})">کپی</button>
-        </div>
-        <div class="progress mt-2">
-          <div class="progress-bar ${chars>MAX?'bg-danger':chars>MAX-20?'bg-warning':'bg-success'}" style="width:${(chars/MAX)*100}%"></div>
-        </div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-function copyTweet(index) {
-  const tweet = document.querySelector(`.tweet-text[data-index="${index}"]`).innerText;
-  navigator.clipboard.writeText(tweet).then(()=>alert("کپی شد ✅"));
-}
-function copyAll() {
-  const tweets = Array.from(document.querySelectorAll('.tweet-text')).map(el=>el.innerText).join("\n\n");
-  navigator.clipboard.writeText(tweets).then(()=>alert("همه کپی شد ✅"));
-}
-</script>
 
+    // Simple toast
+    function toast(msg) {
+      const div = document.createElement('div');
+      div.className = 'position-fixed top-0 start-50 translate-middle-x mt-3 alert alert-dark border-light py-2 px-3 shadow';
+      div.textContent = msg;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 1800);
+    }
+
+    // Events
+    btnProcess.addEventListener('click', processText);
+    btnClear.addEventListener('click', () => {
+      input.value = '';
+      inputCounter.textContent = `0/${MAX}`;
+      outWrap.classList.add('d-none');
+      container.innerHTML = '';
+      setDirClass(input, '');
+    });
+    btnCopyAll.addEventListener('click', copyAll);
+    btnRecalc.addEventListener('click', () => {
+      // Rebuild from current combined text (stripping current numbering)
+      const raw = [...document.querySelectorAll('#tweetsContainer textarea')]
+        .map(t => t.value.replace(/\s*\(\d+\/\d+\)\s*$/, '').trim())
+        .join(' ');
+      input.value = raw; setDirClass(input, raw);
+      processText();
+      toast('بازتقسیم انجام شد.');
+    });
+
+    // Shortcut Ctrl/Cmd + Enter
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        processText();
+      }
+    });
+  </script>
 </body>
 </html>
