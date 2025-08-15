@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>X Thread Maker</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
 <link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
 <style>
 :root {
@@ -13,18 +13,22 @@
   --x-card: #192734;
   --x-text: #e1e8ed;
 }
+* {
+  font-family: 'Vazir', sans-serif;
+}
 body {
   background-color: var(--x-bg);
   color: var(--x-text);
-  font-family: 'Vazir', sans-serif;
 }
 h1 {
   color: var(--x-blue);
+  font-weight: bold;
 }
 .card {
   background-color: var(--x-card);
   border: none;
   border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 textarea, .tweet-text {
   background-color: var(--x-card);
@@ -35,6 +39,9 @@ textarea, .tweet-text {
   padding: 0.75rem;
   resize: vertical;
 }
+textarea::placeholder {
+  color: #8899a6;
+}
 .tweet-text[contenteditable="true"] {
   outline: none;
 }
@@ -44,6 +51,7 @@ textarea, .tweet-text {
 .btn-x {
   background-color: var(--x-blue);
   color: white;
+  font-weight: 500;
 }
 .btn-x:hover {
   background-color: #0d8ddb;
@@ -69,10 +77,8 @@ a:hover {
   <h1 class="mb-4 text-center">🧵 X Thread Maker</h1>
   <div class="row g-4">
     <div class="col-12 col-lg-6">
-      <textarea id="mainText" rows="8" placeholder="متن بلند خود را وارد کنید..."></textarea>
+      <textarea id="mainText" rows="8" placeholder="متن بلند خود را اینجا بنویسید..."></textarea>
       <div class="d-flex flex-wrap gap-2 mt-3">
-        <button class="btn btn-x flex-fill" onclick="generateThread()">تبدیل به رشته توییت</button>
-        <button class="btn btn-secondary flex-fill" onclick="redistribute()">بازتقسیم</button>
         <button class="btn btn-success flex-fill" onclick="copyAll()">کپی همه</button>
       </div>
     </div>
@@ -88,6 +94,16 @@ a:hover {
 
 <script>
 const MAX = 280;
+const input = document.getElementById('mainText');
+input.addEventListener('input', () => {
+  const text = input.value.trim();
+  if (!text) {
+    document.getElementById('tweetsContainer').innerHTML = '';
+    return;
+  }
+  renderTweets(splitText(text));
+});
+
 function countChars(str) {
   return Array.from(str).length;
 }
@@ -134,12 +150,6 @@ function splitText(text) {
   const total = tweets.length;
   return tweets.map((t,i) => `${t} (${i+1}/${total})`);
 }
-function generateThread() {
-  const text = document.getElementById('mainText').value.trim();
-  if (!text) return;
-  const tweets = splitText(text);
-  renderTweets(tweets);
-}
 function renderTweets(tweets) {
   const container = document.getElementById('tweetsContainer');
   container.innerHTML = "";
@@ -170,13 +180,6 @@ function copyTweet(index) {
 function copyAll() {
   const tweets = Array.from(document.querySelectorAll('.tweet-text')).map(el=>el.innerText).join("\n\n");
   navigator.clipboard.writeText(tweets).then(()=>alert("همه کپی شد ✅"));
-}
-function redistribute() {
-  const allText = Array.from(document.querySelectorAll('.tweet-text')).map(el=>{
-    return el.innerText.replace(/\(\d+\/\d+\)$/, '').trim();
-  }).join(" ");
-  const tweets = splitText(allText);
-  renderTweets(tweets);
 }
 </script>
 
